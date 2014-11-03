@@ -1,7 +1,7 @@
 Externals
 
 example/ios/iOS UI Test/DerivedData
-scripts/prebuilt.list.tmp
+scripts/prebuilt.list
 
 # Xcode
 .DS_Store
@@ -22,6 +22,5 @@ DerivedData
 *.hmap
 *.xcuserstate
 *.xccheckout
-
 #CocoaPods
 Pods
