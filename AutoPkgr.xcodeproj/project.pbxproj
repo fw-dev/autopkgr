@@ -867,9 +867,9 @@
 			baseConfigurationReference = 04CA360328E704A8E80B244B /* Pods-AutoPkgr.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = AutoPkgr/AutoPkgr.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "AutoPKGr Open Source Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "AutoPKGr Open Source Development";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AutoPkgr/AutoPkgr-Prefix.pch";
@@ -877,7 +877,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "9f8c9b60-f43d-4eda-93f4-00dc6282cfa6";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -897,7 +897,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "9f8c9b60-f43d-4eda-93f4-00dc6282cfa6";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
