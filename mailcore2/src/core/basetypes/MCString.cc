@@ -37,6 +37,10 @@
 
 using namespace mailcore;
 
+static String * s_unicode160 = NULL;
+static String * s_unicode133 = NULL;
+static String * s_unicode2028 = NULL;
+
 #if DISABLE_ICU
 static int32_t u_strlen(const UChar *s) {
     if (s == NULL) {
@@ -1286,23 +1290,41 @@ void String::appendBytes(const char * bytes, unsigned int length, const char * c
         }
         CFRelease(encodingName);
     }
-    CFStringRef cfStr = CFStringCreateWithBytes(NULL, (const UInt8 *) bytes, (CFIndex) length, encoding, false);
-    if (cfStr != NULL) {
-        CFDataRef data = CFStringCreateExternalRepresentation(NULL, cfStr, kCFStringEncodingUTF16LE, '_');
-        if (data != NULL) {
-            UChar * fixedData = (UChar *) malloc(CFDataGetLength(data));
-            memcpy(fixedData, CFDataGetBytePtr(data), CFDataGetLength(data));
-            unsigned int length = (unsigned int) CFDataGetLength(data) / 2;
-            for(int32_t i = 0 ; i < length ; i ++) {
-                if (fixedData[i] == 0) {
-                    fixedData[i] = ' ';
+    if (encoding == kCFStringEncodingUTF8) {
+        appendUTF8CharactersLength(bytes, length);
+        return;
+    }
+    
+    bool converted = false;
+    int conversionCount = 0;
+    while (!converted) {
+        CFStringRef cfStr = CFStringCreateWithBytes(NULL, (const UInt8 *) bytes, (CFIndex) length, encoding, false);
+        if (cfStr != NULL) {
+            converted = true;
+            CFDataRef data = CFStringCreateExternalRepresentation(NULL, cfStr, kCFStringEncodingUTF16LE, '_');
+            if (data != NULL) {
+                UChar * fixedData = (UChar *) malloc(CFDataGetLength(data));
+                memcpy(fixedData, CFDataGetBytePtr(data), CFDataGetLength(data));
+                unsigned int length = (unsigned int) CFDataGetLength(data) / 2;
+                for(int32_t i = 0 ; i < length ; i ++) {
+                    if (fixedData[i] == 0) {
+                        fixedData[i] = ' ';
+                    }
                 }
+                appendCharactersLength(fixedData, length);
+                free(fixedData);
+                CFRelease(data);
             }
-            appendCharactersLength(fixedData, length);
-            free(fixedData);
-            CFRelease(data);
+            CFRelease(cfStr);
         }
-        CFRelease(cfStr);
+        else {
+            length --;
+            conversionCount ++;
+            if (conversionCount > 10) {
+                // failed.
+                break;
+            }
+        }
     }
 #else
     UErrorCode err;
@@ -1961,18 +1983,20 @@ String * String::stripWhitespace()
     str->replaceOccurrencesOfString(MCSTR("\v"), MCSTR(" "));
     str->replaceOccurrencesOfString(MCSTR("\f"), MCSTR(" "));
     str->replaceOccurrencesOfString(MCSTR("\r"), MCSTR(" "));
-    UChar ch[2];
-    ch[0] = 160;
-    ch[1] = 0;
-    str->replaceOccurrencesOfString(String::stringWithCharacters(ch), MCSTR(" "));
-    ch[0] = 133;
-    ch[1] = 0;
-    str->replaceOccurrencesOfString(String::stringWithCharacters(ch), MCSTR(" "));
-    
+    str->replaceOccurrencesOfString(s_unicode160, MCSTR(" "));
+    str->replaceOccurrencesOfString(s_unicode133, MCSTR(" "));
+    str->replaceOccurrencesOfString(s_unicode2028, MCSTR(" "));
+
     while (str->replaceOccurrencesOfString(MCSTR("  "), MCSTR(" ")) > 0) {
         /* do nothing */
     }
-    
+    while (str->hasPrefix(MCSTR(" "))) {
+        str->deleteCharactersInRange(RangeMake(0, 1));
+    }
+    while (str->hasSuffix(MCSTR(" "))) {
+        str->deleteCharactersInRange(RangeMake(str->length() - 1, 1));
+    }
+
     str->autorelease();
     return str;
 }
@@ -2390,8 +2414,10 @@ bool String::isEqualCaseInsensitive(String * otherString)
 Data * String::decodedBase64Data()
 {
     const char * utf8 = UTF8Characters();
-    char * decoded = MCDecodeBase64(utf8, (unsigned int) strlen(utf8));
-    Data * result = Data::dataWithBytes(decoded, (unsigned int) strlen(decoded));
+    unsigned int encoded_len = (unsigned int) strlen(utf8);
+    int decoded_len = 0;
+    char * decoded = MCDecodeBase64(utf8, encoded_len, &decoded_len);
+    Data * result = Data::dataWithBytes(decoded, decoded_len);
     free(decoded);
     return result;
 }
@@ -2418,4 +2444,11 @@ __attribute__((constructor))
 static void initialize()
 {
     Object::registerObjectConstructor("mailcore::String", &createObject);
+
+    UChar chars_160[1] = {160};
+    s_unicode160 = new String(chars_160, 1);
+    UChar chars_133[1] = {133};
+    s_unicode133 = new String(chars_133, 1);
+    UChar chars_2028[1] = {0x2028};
+    s_unicode2028 = new String(chars_2028, 1);
 }

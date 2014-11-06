@@ -242,17 +242,17 @@ static bool isHintCharsetValid(String * hintCharset)
             "ISO-2022-CN",
             "ISO-2022-JP",
             "ISO-2022-KR",
-            "ISO-8859-5"
-            "windows-1251"
-            "KOI8-R"
-            "x-mac-cyrillic"
-            "IBM866"
-            "IBM855"
-            "ISO-8859-7"
-            "windows-1253"
-            "ISO-8859-2"
-            "windows-1250"
-            "TIS-620"
+            "ISO-8859-5",
+            "windows-1251",
+            "KOI8-R",
+            "x-mac-cyrillic",
+            "IBM866",
+            "IBM855",
+            "ISO-8859-7",
+            "windows-1253",
+            "ISO-8859-2",
+            "windows-1250",
+            "TIS-620",
         };
         for(unsigned int i = 0 ; i < sizeof(charset_list) / sizeof(charset_list[0]) ; i ++) {
             String * str = String::stringWithUTF8Characters(charset_list[i]);
@@ -315,25 +315,7 @@ String * Data::stringWithDetectedCharset(String * hintCharset, bool isHTML)
     
     // Remove whitespace at the end of the string to fix conversion.
     if (charset->isEqual(MCSTR("iso-2022-jp-2"))) {
-        const char * theBytes;
-        Data * data;
-        
-        theBytes = bytes();
-        data = this;
-        if (length() >= 2) {
-            unsigned int idx;
-            
-            idx = length();
-            while ((theBytes[idx - 1] == '\n') || (theBytes[idx - 1] == '\r')) {
-                idx --;
-                if (idx == 0)
-                    break;
-            }
-            
-            if (idx != length()) {
-                data = Data::dataWithBytes(theBytes, idx);
-            }
-        }
+        Data * data = this;
         result = data->stringWithCharset("iso-2022-jp-2");
         if (result == NULL) {
             result = data->stringWithCharset("iso-2022-jp");
