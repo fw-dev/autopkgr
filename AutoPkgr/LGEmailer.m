@@ -165,7 +165,7 @@
         [message appendFormat:@"<strong>The following software is now available for testing:<br /></strong><br />"];
 
         for (NSString *path in newDownloads) {
-            NSCharacterSet *set = [NSCharacterSet punctuationCharacterSet];
+            NSCharacterSet *set = [NSCharacterSet characterSetWithCharactersInString:@"."];
 
             // Get just the application name from the path in the new_downloads dict
             NSString *downloadFile = [path lastPathComponent];
