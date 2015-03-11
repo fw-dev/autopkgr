@@ -71,18 +71,26 @@ NSString *const kLGVersionerVersionKey = @"version";
 - (void)evaluateVersion:(NSString *)rawString
 {
     NSError *error;
-    NSString *pattern = @"((\\d+)\\.(\\d+)(\\.(\\d+))?(\\.(\\d+))?)(?:(?:-(alpha\\d*|beta\\d*|rc\\d*))?)";
 
-    NSString *string = CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL, (__bridge CFStringRef)rawString, CFSTR(""), kCFStringEncodingUTF8));
+    NSPredicate *sparkelVersion = [NSPredicate predicateWithFormat:@"SELF BEGINSWITH[cd] 'SparkleUpdateInfoProvider' AND SELF CONTAINS[cd] 'Version'"];
 
-    NSRegularExpression *exp = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
+    if ([sparkelVersion evaluateWithObject:rawString]) {
+        NSArray *split = [rawString componentsSeparatedByString:@"Version retrieved from appcast:"];
+        _currentVersion = [[split lastObject] trimmed];
+    } else {
+        NSString *pattern = @"((\\d+)\\.(\\d+)(\\.(\\d+))?(\\.(\\d+))?)(?:(?:-(alpha\\d*|beta\\d*|rc\\d*))?)";
 
-    if (string && !error) {
-        NSRange range = NSMakeRange(0, string.length);
-        NSArray *matches = [exp matchesInString:string options:0 range:range];
-        for (NSTextCheckingResult *match in matches) {
-            _currentVersion = [string substringWithRange:match.range];
-            break;
+        NSString *string = CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(NULL, (__bridge CFStringRef)rawString, CFSTR(""), kCFStringEncodingUTF8));
+
+        NSRegularExpression *exp = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
+
+        if (string && !error) {
+            NSRange range = NSMakeRange(0, string.length);
+            NSArray *matches = [exp matchesInString:string options:0 range:range];
+            for (NSTextCheckingResult *match in matches) {
+                _currentVersion = [string substringWithRange:match.range];
+                break;
+            }
         }
     }
 }
@@ -91,7 +99,7 @@ NSString *const kLGVersionerVersionKey = @"version";
 {
 
     NSArray *validPathExtensions = @[ @"dmg", @"zip", @"tar", @"gz" ];
-    NSArray *possibleProcessors = @[ @"URLDownloader", ];
+    NSArray *possibleProcessors = @[ @"URLDownloader", @"SparkleUpdateInfoProvider" ];
 
     // Construct a predicate string from the above values.
     // This will make it easy to adjust in the future, as more processors are
